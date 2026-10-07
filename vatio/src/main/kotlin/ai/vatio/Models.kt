@@ -172,6 +172,11 @@ public data class VatioFeedback(
     val rating: Rating?,
     val submittedAt: Instant?,
     val dismissed: Boolean,
+    /**
+     * The agent's own words to ask with, written for this conversation; null
+     * when there are none, and you ask in your own words.
+     */
+    val question: String? = null,
 ) {
     /** Still waiting for the visitor: neither rated nor dismissed. */
     val isOpen: Boolean get() = rating == null && !dismissed

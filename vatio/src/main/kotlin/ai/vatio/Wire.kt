@@ -44,6 +44,7 @@ internal fun parseFeedback(json: JSONObject): VatioFeedback = VatioFeedback(
     rating = VatioFeedback.Rating.of(json.string("rating")),
     submittedAt = parseDate(json.string("submitted_at")),
     dismissed = json.bool("dismissed") ?: false,
+    question = json.string("question"),
 )
 
 internal fun parseConversation(json: JSONObject): VatioConversation = VatioConversation(

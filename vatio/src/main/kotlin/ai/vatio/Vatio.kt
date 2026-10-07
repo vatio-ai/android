@@ -45,7 +45,7 @@ public class Vatio @JvmOverloads constructor(
     client: OkHttpClient? = null,
 ) {
     public companion object {
-        public const val VERSION: String = "0.1.0"
+        public const val VERSION: String = "0.2.0"
 
         private val sharedClient by lazy { OkHttpClient() }
     }

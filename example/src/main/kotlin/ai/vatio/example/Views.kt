@@ -386,7 +386,7 @@ fun FeedbackCard(chat: VatioChat, feedback: VatioFeedback) {
             }
         } else {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("¿Cómo lo hizo ${feedback.agentName}?", fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+                Text(feedback.question ?: "¿Cómo lo hizo ${feedback.agentName}?", fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
                 TextButton(onClick = { answer { chat.dismissFeedback() } }, enabled = !sending) { Text("Omitir") }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

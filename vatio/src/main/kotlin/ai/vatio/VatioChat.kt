@@ -42,7 +42,7 @@ public class VatioChat @JvmOverloads constructor(
     /**
      * Says who the visitor is when your app already knows: a token your
      * backend signed for the signed-in user (see
-     * docs.vatio.ai/authentication/sessions). A different token subject is a
+     * vatio.ai/docs/authentication/sessions). A different token subject is a
      * different person, with a conversation of their own.
      */
     public val visitorToken: String? = null,

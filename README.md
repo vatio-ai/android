@@ -41,7 +41,7 @@ dependencyResolutionManagement {
 
 // app/build.gradle.kts
 dependencies {
-    implementation("com.github.vatio-ai:android:0.2.0")
+    implementation("com.github.vatio-ai:android:0.2.1")
 }
 ```
 

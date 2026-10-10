@@ -45,7 +45,7 @@ public class Vatio @JvmOverloads constructor(
     client: OkHttpClient? = null,
 ) {
     public companion object {
-        public const val VERSION: String = "0.2.0"
+        public const val VERSION: String = "0.2.1"
 
         private val sharedClient by lazy { OkHttpClient() }
     }
@@ -82,7 +82,11 @@ public class Vatio @JvmOverloads constructor(
     public suspend fun conversations(visitorToken: String? = null): List<VatioConversation> {
         validateToken()
         val visitorRef = storage(visitorToken).visitorRef ?: return emptyList()
-        val body = request("GET", "chats?visitor_ref=${queryEscaped(visitorRef)}", bearer = token)
+        // A conversation this person had signed in is listed only alongside
+        // their token.
+        val builder = requestBuilder("chats?visitor_ref=${queryEscaped(visitorRef)}", token).get()
+        if (!visitorToken.isNullOrEmpty()) builder.header("Vatio-Visitor-Token", visitorToken)
+        val body = send(builder.build())
         return decode(body) { json -> json.list("data").map(::parseConversation) }
     }
 

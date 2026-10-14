@@ -10,21 +10,16 @@ draw it however your app looks, in Compose or Views.
 
 ## Setup
 
-**1. Allow your app.** A publishable token only works from origins the
-workspace allowlists. Your app's origin is `android-app://` plus its package
-name (its `applicationId`):
-
-```yaml
-# vatio.yml
-allowed_origins:
-  - https://acme.com
-  - android-app://com.acme.app
-```
+**1. Allow your app.** A publishable token only works from its own allowed
+origins. Your app's origin is `android-app://` plus its package name (its
+`applicationId`):
 
 ```bash
-vatio push
-vatio tokens create --env live --label android
+vatio tokens create --env live --label android --origin android-app://com.acme.app
 ```
+
+To add it to a token you already have, use `vatio tokens origins PREFIX URL...`
+or the tokens section of **Channels → Web widget** in the inbox.
 
 **2. Add the library.** It is built by [JitPack](https://jitpack.io) from the
 tags of this repository:
@@ -169,7 +164,7 @@ the pending message is removed from `messages`.
 workspace, token and base URL. It also paints each new reply progressively, as
 the web widget does (`TypewriterText` in `Views.kt`): the SDK delivers the
 reply whole, and the effect is purely on screen, so copy it if you want it.
-Allow `android-app://ai.vatio.example` in `vatio.yml`, then open this folder
+Allow `android-app://ai.vatio.example` on the token you use (`--origin` above), then open this folder
 in Android Studio and run `example`, or:
 
 ```bash
@@ -284,7 +279,7 @@ Every failure is a `VatioException` with a `code`, a `message` and the HTTP
 
 | `code` | Meaning |
 |---|---|
-| `origin_not_allowed` | `android-app://<package name>` is not in `allowed_origins` |
+| `origin_not_allowed` | `android-app://<package name>` is not among the token's allowed origins |
 | `wrong_token_kind` | The token is not a `vatpub_` publishable token |
 | `no_agent_deployed` | Nothing is published to the token's environment |
 | `blank_content`, `content_too_long` | The message is empty or over 4,000 characters |

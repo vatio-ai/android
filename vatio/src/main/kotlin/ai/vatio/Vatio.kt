@@ -26,8 +26,9 @@ import java.util.concurrent.TimeUnit
  *     chat.send("hola")
  *
  * [token] is a publishable token (`vatpub_…`), meant to ship inside your app.
- * It only works once the workspace allowlists the app: add
- * `android-app://YOUR.PACKAGE.NAME` to `allowed_origins` in `vatio.yml`.
+ * It only works from the origins the token allows, so allow the app on it:
+ * `vatio tokens create --origin android-app://YOUR.PACKAGE.NAME`, or add the
+ * origin to an existing token with `vatio tokens origins`.
  * A `vat_` token is a developer secret and must never ship in an app.
  */
 public class Vatio @JvmOverloads constructor(

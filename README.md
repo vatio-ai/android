@@ -8,6 +8,20 @@ draw it however your app looks, in Compose or Views.
 - Gradle, through JitPack
 - OkHttp and kotlinx.coroutines only
 
+## The quickest way
+
+Building your app with Claude Code, Cursor or Codex? Let your coding agent do
+all of this. In your app's project:
+
+```bash
+npx @vatio-ai/skills
+```
+
+Then, in Claude Code, `/vatio-init` creates the agent from your app, and
+`/vatio-add-to-app` adds this library, the tokens and a Compose chat screen in your
+app's style (in Cursor or Codex, ask it to use those
+skills). See [An AI agent in your Android app](https://vatio.ai/guides/ai-agent-in-your-android-app).
+
 ## Setup
 
 **1. Allow your app.** A publishable token only works from its own allowed

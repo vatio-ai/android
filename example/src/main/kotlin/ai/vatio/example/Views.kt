@@ -264,7 +264,7 @@ fun SettingsScreen(store: ChatStore, modifier: Modifier = Modifier) {
             OutlinedTextField(token, { token = it }, label = { Text("vatpub_…") }, singleLine = true, modifier = Modifier.fillMaxWidth())
             OutlinedTextField(baseUrl, { baseUrl = it }, label = { Text("https://vatio.ai") }, singleLine = true, modifier = Modifier.fillMaxWidth())
             Text(
-                "Agrega android-app://${context.packageName} a allowed_origins en vatio.yml. " +
+                "Agrega android-app://${context.packageName} a los orígenes del token: vatio tokens origins. " +
                     "Desde el emulador, tu máquina es http://10.0.2.2:3000.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,

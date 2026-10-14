@@ -36,8 +36,8 @@ import java.io.File
 
 // A dummy app for trying the SDK: a home screen with an ask bar at the
 // bottom, a conversation tab where the agent answers, and a settings tab for
-// the workspace and token. Allow `android-app://ai.vatio.example` in the
-// workspace's `allowed_origins` first.
+// the workspace and token. Allow `android-app://ai.vatio.example` on the token
+// first: `vatio tokens create --env preview --origin android-app://ai.vatio.example`.
 //
 // Settings can also come from launch extras, and `ask` there, or opening
 // `vatioexample://ask?q=hola`, asks a question the way the bar does.

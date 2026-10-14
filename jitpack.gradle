@@ -1,0 +1,16 @@
+// JitPack's builders share addresses that Maven Central answers with 429 (too
+// many requests), which fails a release build. jitpack.yml passes this init
+// script so that, on JitPack only, Central's artifacts come from Google's
+// mirror of Central instead. Local and CI builds don't use it.
+def mirror = "https://maven-central.storage-download.googleapis.com/maven2/"
+def useMirror = { repos ->
+    repos.withType(MavenArtifactRepository).configureEach { repo ->
+        if (repo.url.toString().startsWith("https://repo.maven.apache.org/")) {
+            repo.url = mirror
+        }
+    }
+}
+settingsEvaluated { settings ->
+    useMirror(settings.pluginManagement.repositories)
+    useMirror(settings.dependencyResolutionManagement.repositories)
+}

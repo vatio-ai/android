@@ -103,11 +103,25 @@ public class VatioChat @JvmOverloads constructor(
     private var pollJob: Job? = null
     private var pollUntil = 0L
 
+    // When the agent last said something new, for polling to look for the
+    // feedback moment after it; null once the visitor has written since.
+    private var repliedAt: Long? = null
+    private var feedbackCheckedAt = 0L
+
     private companion object {
         val RECONNECT_DELAYS = longArrayOf(500, 1_000, 2_000, 5_000, 10_000)
         const val POLL_INTERVAL = 1_500L
         const val POLL_WINDOW = 45_000L
         const val SUBSCRIBE_TIMEOUT = 10_000L
+
+        // Nothing pushes the feedback moment without a socket either, so
+        // polling asks for it, around the two times Vatio offers one after the
+        // agent speaks: a few seconds later when the visitor closed the topic,
+        // two minutes later when they went quiet. Every few seconds inside
+        // those windows (measured from when the reply arrived), not on every
+        // poll.
+        const val FEEDBACK_CHECK_INTERVAL = 5_000L
+        val FEEDBACK_CHECK_WINDOWS = listOf(0L..45_000L, 120_000L..150_000L)
     }
 
     // Public surface
@@ -191,6 +205,7 @@ public class VatioChat @JvmOverloads constructor(
                 confirm(pending, stored, result?.long("user_message_id"))
                 // Writing again moves the conversation on, and the moment with it.
                 if (_feedback.value?.rating == null) _feedback.value = null
+                repliedAt = null
                 if (!subscribed) pollFor(POLL_WINDOW)
             } catch (e: Throwable) {
                 _messages.value = _messages.value.filterNot { it.id == pending.id }
@@ -441,6 +456,7 @@ public class VatioChat @JvmOverloads constructor(
         current = null
         _isTyping.value = false
         _feedback.value = null
+        repliedAt = null
         stopPolling()
         releaseWaiters()
     }
@@ -459,7 +475,7 @@ public class VatioChat @JvmOverloads constructor(
         _feedback.value = vatio.decode(response) { json -> json.optJSONObject("feedback")?.let(::parseFeedback) }
     }
 
-    private suspend fun refreshFeedback() {
+    private suspend fun refreshFeedback(onlyIf: () -> Boolean = { true }) {
         val chat = current ?: return
         val offered = try {
             val body = vatio.request("GET", "chats/${chat.chatId}/feedback", chat.chatToken)
@@ -469,8 +485,22 @@ public class VatioChat @JvmOverloads constructor(
         } catch (_: Exception) {
             return
         }
-        if (current?.chatId != chat.chatId) return
+        if (current?.chatId != chat.chatId || !onlyIf()) return
         if (offered != _feedback.value) _feedback.value = offered
+    }
+
+    /** Polling's stand-in for the feedback event: see FEEDBACK_CHECK_WINDOWS. */
+    private suspend fun pollFeedback() {
+        val since = repliedAt ?: return
+        if (subscribed || _feedback.value != null) return
+        val now = SystemClock.elapsedRealtime()
+        if (now - feedbackCheckedAt < FEEDBACK_CHECK_INTERVAL) return
+        if (FEEDBACK_CHECK_WINDOWS.none { (now - since) in it }) return
+
+        feedbackCheckedAt = now
+        // A send while this is out moves the conversation on, which makes what
+        // it finds stale.
+        refreshFeedback(onlyIf = { repliedAt == since })
     }
 
     // Fallbacks
@@ -497,6 +527,7 @@ public class VatioChat @JvmOverloads constructor(
                     delay(POLL_INTERVAL)
                     if (closed || subscribed || SystemClock.elapsedRealtime() > pollUntil) break
                     resync()
+                    pollFeedback()
                 }
             } finally {
                 if (pollJob === coroutineContext[Job]) pollJob = null
@@ -545,6 +576,7 @@ public class VatioChat @JvmOverloads constructor(
             list += message
             known += message.id
             lastMessageId = maxOf(lastMessageId, message.id)
+            if (message.role != VatioMessage.Role.User) repliedAt = SystemClock.elapsedRealtime()
         }
         _messages.value = sorted(list)
     }

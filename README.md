@@ -193,6 +193,9 @@ adb shell am start -n ai.vatio.example/.MainActivity \
   --es workspace acme --es token vatpub_... --es baseUrl http://10.0.2.2:3000 --es ask hola
 ```
 
+For a whole app on the SDK, with the conversation list, voice notes, the
+feedback card and settings, see [Vatio Chat for Android](https://github.com/vatio-ai/vatio-chat-android).
+
 ## Files and voice notes
 
 `send(text, attachments)` takes up to four `VatioUpload`s — an image (JPEG,

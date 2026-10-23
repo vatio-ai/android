@@ -24,16 +24,9 @@ skills). See [An AI agent in your Android app](https://vatio.ai/guides/ai-agent-
 
 ## Setup
 
-**1. Allow your app.** A publishable token only works from its own allowed
-origins. Your app's origin is `android-app://` plus its package name (its
-`applicationId`):
-
-```bash
-vatio tokens create --env live --label android --origin android-app://com.acme.app
-```
-
-To add it to a token you already have, use `vatio tokens origins PREFIX URL...`
-or the tokens section of **Channels → Web widget** in the inbox.
+**1. Allow your app.** A publishable key only works from the origins it
+allows, and an Android app has its own. Creating the key and allowing the app
+is in the Android guide: <https://vatio.ai/docs/sdk/android>.
 
 **2. Add the library.** It is built by [JitPack](https://jitpack.io) from the
 tags of this repository:

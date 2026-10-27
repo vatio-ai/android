@@ -45,7 +45,7 @@ public class Vatio @JvmOverloads constructor(
     client: OkHttpClient? = null,
 ) {
     public companion object {
-        public const val VERSION: String = "0.2.3"
+        public const val VERSION: String = "0.2.4"
 
         private val sharedClient by lazy { OkHttpClient() }
     }
@@ -74,18 +74,22 @@ public class Vatio @JvmOverloads constructor(
     }
 
     /**
-     * Every conversation this visitor has had on this workspace from this
-     * device, newest first. Empty for a visitor who never talked here. Pass
-     * the same [visitorToken] you give [VatioChat].
+     * Every conversation this visitor has had on this workspace, newest
+     * first. Empty for a visitor who never talked here. Pass the same
+     * [visitorToken] you give [VatioChat]: a signed-in visitor's
+     * conversations come back on any device, after a reinstall too.
      */
     @JvmOverloads
     public suspend fun conversations(visitorToken: String? = null): List<VatioConversation> {
         validateToken()
-        val visitorRef = storage(visitorToken).visitorRef ?: return emptyList()
-        // A conversation this person had signed in is listed only alongside
-        // their token.
-        val builder = requestBuilder("chats?visitor_ref=${queryEscaped(visitorRef)}", token).get()
-        if (!visitorToken.isNullOrEmpty()) builder.header("Vatio-Visitor-Token", visitorToken)
+        val signedToken = visitorToken?.takeIf { it.isNotEmpty() }
+        val visitorRef = storage(signedToken).visitorRef
+        if (visitorRef == null && signedToken == null) return emptyList()
+        // A conversation this person had signed in is listed by their token,
+        // and only alongside it.
+        val query = visitorRef?.let { "?visitor_ref=${queryEscaped(it)}" } ?: ""
+        val builder = requestBuilder("chats$query", token).get()
+        if (signedToken != null) builder.header("Vatio-Visitor-Token", signedToken)
         val body = send(builder.build())
         return decode(body) { json -> json.list("data").map(::parseConversation) }
     }

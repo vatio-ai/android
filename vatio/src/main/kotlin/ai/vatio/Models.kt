@@ -28,8 +28,23 @@ public data class VatioMessage(
      * just a file: draw the attachment, not the word.
      */
     val isMediaLabel: Boolean = false,
+    /**
+     * Links the agent's reply sends as buttons. [content] still has each one
+     * as the agent wrote it, for a client that draws none: to draw them, show
+     * [textWithoutButtons] and a button per entry under it.
+     */
+    val buttons: List<VatioButton> = emptyList(),
 ) {
     val isFromVisitor: Boolean get() = role == Role.User
+
+    /**
+     * [content] without the links its buttons carry, for the text above the
+     * buttons. A link on a line of its own takes the line with it, one inside
+     * a sentence leaves its words: how Vatio takes it out of a WhatsApp
+     * message.
+     */
+    val textWithoutButtons: String
+        get() = buttons.filter { it.isLink }.fold(content) { text, button -> withoutLink(text, button.url) }
 
     public sealed interface Role {
         public data object User : Role
@@ -45,6 +60,44 @@ public data class VatioMessage(
             }
         }
     }
+}
+
+/** A link the reply sends as a button. */
+public data class VatioButton(
+    /** `url` today. Skip a button whose type you do not know. */
+    val type: String,
+    /** What the button says, in the visitor's language. */
+    val title: String,
+    /** Where it goes, for a `url` button. */
+    val url: String,
+) {
+    internal val isLink: Boolean
+        get() = type == "url" && (url.startsWith("https://", ignoreCase = true) || url.startsWith("http://", ignoreCase = true))
+}
+
+private val LEFTOVER = Regex("^[\\s\\p{P}\\p{S}]*$")
+
+private fun withoutLink(text: String, url: String): String {
+    val escaped = Regex.escape(url)
+    val markdown = Regex("\\[([^\\]\\n]*)\\]\\($escaped\\)")
+    val lines = text.split("\n").toMutableList()
+    val index = lines.indexOfFirst { markdown.containsMatchIn(it) || it.contains(url) }
+    if (index == -1) return text
+
+    val line = lines[index]
+    val match = markdown.find(line)
+    val kept: String? = if (match != null) {
+        val rest = line.removeRange(match.range)
+        if (LEFTOVER.matches(rest)) null else line.replaceRange(match.range, match.groupValues[1])
+    } else {
+        val rest = line.replaceFirst(Regex("$escaped\\.?"), "")
+        if (LEFTOVER.matches(rest)) null else rest
+    }
+    if (kept == null) lines.removeAt(index) else lines[index] = kept
+    return lines.joinToString("\n")
+        .replace(Regex("\n{3,}"), "\n\n")
+        .replace(Regex("[ \t]{2,}"), " ")
+        .trim()
 }
 
 /** A file on a message. */

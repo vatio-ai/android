@@ -211,22 +211,30 @@ fun ConversationScreen(store: ChatStore, chat: VatioChat, modifier: Modifier = M
 @Composable
 fun Bubble(message: VatioMessage, paints: Boolean, onProgress: () -> Unit, onFinish: () -> Unit) {
     val visitor = message.isFromVisitor
+    val uriHandler = LocalUriHandler.current
+    // A link the reply sends as a button is drawn as one under the bubble,
+    // and comes out of the text above it.
+    val buttons = message.buttons.filter { it.type == "url" }
     Row(Modifier.fillMaxWidth(), horizontalArrangement = if (visitor) Arrangement.End else Arrangement.Start) {
-        Column(
-            Modifier
-                .widthIn(max = 300.dp)
-                .alpha(if (message.isPending) 0.6f else 1f)
-                .clip(RoundedCornerShape(16.dp))
-                .background(if (visitor) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
-                .padding(12.dp, 8.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            val color = if (visitor) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
-            message.attachments.forEach { AttachmentView(it, color) }
-            // A file-only message carries a stand-in ("Image"); the file above
-            // already says it.
-            if (!message.isMediaLabel && message.content.isNotEmpty()) {
-                TypewriterText(message.content, paints, color, onProgress, onFinish)
+        Column(Modifier.widthIn(max = 300.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Column(
+                Modifier
+                    .alpha(if (message.isPending) 0.6f else 1f)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(if (visitor) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
+                    .padding(12.dp, 8.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                val color = if (visitor) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+                message.attachments.forEach { AttachmentView(it, color) }
+                // A file-only message carries a stand-in ("Image"); the file above
+                // already says it.
+                if (!message.isMediaLabel && message.content.isNotEmpty()) {
+                    TypewriterText(message.textWithoutButtons, paints, color, onProgress, onFinish)
+                }
+            }
+            buttons.forEach { button ->
+                OutlinedButton(onClick = { uriHandler.openUri(button.url) }, Modifier.fillMaxWidth()) { Text(button.title) }
             }
         }
     }

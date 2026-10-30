@@ -27,7 +27,14 @@ internal fun parseMessage(json: JSONObject): VatioMessage = VatioMessage(
     createdAt = parseDate(json.string("occurred_at") ?: json.string("created_at")),
     attachments = json.list("attachments").map(::parseAttachment),
     isMediaLabel = json.bool("content_is_media_label") ?: false,
+    buttons = json.list("buttons").mapNotNull(::parseButton),
 )
+
+internal fun parseButton(json: JSONObject): VatioButton? {
+    val title = json.string("title") ?: return null
+    val url = json.string("url") ?: return null
+    return VatioButton(type = json.string("type") ?: "url", title = title, url = url)
+}
 
 internal fun parseAttachment(json: JSONObject): VatioAttachment = VatioAttachment(
     id = json.getLong("id"),
